@@ -4,7 +4,7 @@ import com.mvvm.myapplication.meeshotest.ui.SessionActivity
 import dagger.Module
 import dagger.android.ContributesAndroidInjector
 
-@Module(includes = [SessionModule::class, NetworkModule::class])
+@Module(includes = [SessionModule::class, NetworkModule::class, AppModule::class])
 abstract class SessionBindingModule {
 
     @ContributesAndroidInjector

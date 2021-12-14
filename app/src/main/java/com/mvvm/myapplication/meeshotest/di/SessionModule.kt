@@ -1,6 +1,8 @@
 package com.mvvm.myapplication.meeshotest.di
 
 import com.mvvm.myapplication.meeshotest.data.api.EndSessionApi
+import com.mvvm.myapplication.meeshotest.data.dao.SessionDao
+import com.mvvm.myapplication.meeshotest.data.database.AppDatabase
 import com.mvvm.myapplication.meeshotest.data.datasource.SessionDataSource
 import com.mvvm.myapplication.meeshotest.data.datasource.SessionDataSourceImpl
 import com.mvvm.myapplication.meeshotest.data.repository.SessionRepository
@@ -34,4 +36,10 @@ class SessionModule {
     fun providesSessionRepository(
         sessionDataSource: SessionDataSource
     ): SessionRepository = SessionRepositoryImpl(sessionDataSource)
+
+    @Provides
+    fun providesSessionDao(
+        appDatabase: AppDatabase
+    ): SessionDao = appDatabase.sessionDao()
+
 }
