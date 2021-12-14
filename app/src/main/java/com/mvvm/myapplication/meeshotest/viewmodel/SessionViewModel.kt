@@ -1,4 +1,4 @@
-package com.mvvm.myapplication.meeshotest
+package com.mvvm.myapplication.meeshotest.viewmodel
 
 import androidx.lifecycle.ViewModel
 

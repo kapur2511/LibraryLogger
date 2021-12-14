@@ -1,7 +1,8 @@
-package com.mvvm.myapplication.meeshotest
+package com.mvvm.myapplication.meeshotest.ui
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.mvvm.myapplication.meeshotest.R
 
 class SessionActivity : AppCompatActivity() {
 
