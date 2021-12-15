@@ -14,6 +14,7 @@ import com.mvvm.myapplication.meeshotest.databinding.SessionActivityBinding
 import com.mvvm.myapplication.meeshotest.services.SessionService
 import com.mvvm.myapplication.meeshotest.utils.*
 import com.mvvm.myapplication.meeshotest.viewmodel.SessionViewModel
+import dagger.android.AndroidInjection
 import javax.inject.Inject
 
 class SessionActivity : AppCompatActivity(), AppReceiver {
@@ -35,6 +36,7 @@ class SessionActivity : AppCompatActivity(), AppReceiver {
     lateinit var viewModelFactory: ViewModelProvider.Factory
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        AndroidInjection.inject(this)
         super.onCreate(savedInstanceState)
         sessionActivityBinding = SessionActivityBinding.inflate(layoutInflater)
         setContentView(sessionActivityBinding.root)
@@ -82,7 +84,9 @@ class SessionActivity : AppCompatActivity(), AppReceiver {
             }
 
             endSessionButton.clickWithThrottle {
-
+                viewModel.endSession()
+                val intent = Intent(this@SessionActivity, SessionService::class.java)
+                stopService(intent)
             }
         }
     }
