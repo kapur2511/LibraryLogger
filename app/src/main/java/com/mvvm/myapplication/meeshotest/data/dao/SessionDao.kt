@@ -8,7 +8,7 @@ import com.mvvm.myapplication.meeshotest.data.entities.SessionEntity
 interface SessionDao {
 
     @Query("SELECT * FROM $SESSION_TABLE_NAME LIMIT 1")
-    suspend fun getSessions(): SessionEntity
+    suspend fun getSession(): SessionEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSession(sessionEntity: SessionEntity)
