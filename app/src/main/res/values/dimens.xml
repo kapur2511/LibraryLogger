@@ -2,4 +2,5 @@
 <resources>
     <dimen name="forty_dp">40dp</dimen>
     <dimen name="sixteen_dp">16dp</dimen>
+    <dimen name="font_24">24sp</dimen>
 </resources>

@@ -29,21 +29,17 @@ object NotificationUtils {
         }
     }
 
-    fun createNotification(context: Context): Notification {
+    fun createNotification(context: Context, timeElapsed: String = "00:00:00"): Notification {
         val notificationIntent = Intent(context, SessionActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
             context,
             0, notificationIntent, 0
         )
         return NotificationCompat.Builder(context, CHANNEL_ID)
-            .setContentTitle("Foreground Service")
-            .setContentText("input")
+            .setContentTitle("Active session")
+            .setContentText("Time elapsed: $timeElapsed")
             .setSmallIcon(R.drawable.timer)
             .setContentIntent(pendingIntent)
             .build()
-    }
-
-    fun updateNotification() {
-        //TODO
     }
 }

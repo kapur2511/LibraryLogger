@@ -7,6 +7,10 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.mvvm.myapplication.meeshotest.data.localmodels.BarcodeData
 import com.mvvm.myapplication.meeshotest.data.repository.SessionRepository
+import com.mvvm.myapplication.meeshotest.utils.Error
+import com.mvvm.myapplication.meeshotest.utils.Loading
+import com.mvvm.myapplication.meeshotest.utils.ResultWrapper
+import com.mvvm.myapplication.meeshotest.utils.Success
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.lang.Exception
@@ -16,17 +20,19 @@ class SessionViewModel @Inject constructor(
     private val sessionRepository: SessionRepository
 ): ViewModel() {
 
-    private val _sessionUIObservable = MutableLiveData<BarcodeData>()
+    private val _sessionUIObservable = MutableLiveData<ResultWrapper<BarcodeData>>()
     val sessionUIObservable = _sessionUIObservable
 
     fun setupUiIfSessionIsRunning(){
+        _sessionUIObservable.postValue(Loading(true))
         viewModelScope.launch(Dispatchers.IO) {
             val barcodeData = sessionRepository.getSession()
             if(barcodeData != null) {
                 //there is already a session running, setup end session UI
-                _sessionUIObservable.postValue(barcodeData)
+                _sessionUIObservable.postValue(Success(barcodeData))
             } else {
                 //no session is running, setup start session UI
+                _sessionUIObservable.postValue(Error(Throwable("No active session")))
             }
         }
     }
@@ -42,7 +48,7 @@ class SessionViewModel @Inject constructor(
                         startTimestamp =  System.currentTimeMillis()
                     )
                 )
-                _sessionUIObservable.postValue(barcodeData)
+                _sessionUIObservable.postValue(Success(barcodeData))
             } catch (e: Exception) {
                 //Some parsing error
             }
