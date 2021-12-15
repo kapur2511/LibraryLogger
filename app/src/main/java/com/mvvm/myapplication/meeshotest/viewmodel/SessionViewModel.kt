@@ -32,7 +32,11 @@ class SessionViewModel @Inject constructor(
                 _sessionUIObservable.postValue(Success(barcodeData))
             } else {
                 //no session is running, setup start session UI
-                _sessionUIObservable.postValue(Error(Throwable("No active session")))
+                _sessionUIObservable.postValue(
+                    Error(
+                        Throwable("No active session, click on Start session to begin")
+                    )
+                )
             }
         }
     }
@@ -51,6 +55,7 @@ class SessionViewModel @Inject constructor(
                 _sessionUIObservable.postValue(Success(barcodeData))
             } catch (e: Exception) {
                 //Some parsing error
+                _sessionUIObservable.postValue(Error(Throwable("Some parsing error, please try again.")))
             }
         }
     }

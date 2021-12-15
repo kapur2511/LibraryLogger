@@ -1,5 +1,6 @@
 package com.mvvm.myapplication.meeshotest.ui
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
@@ -23,6 +24,8 @@ class SessionActivity : AppCompatActivity(), AppReceiver {
         const val SESSION_RECEIVER = "session_receiver"
         const val SESSION_TIME_ELAPSED = "session_time_elapsed"
         const val SESSION_TIME_ELAPSED_RESULT_CODE = 101
+        const val BARCODE_REQUEST_CODE = 102
+        const val BARCODE_DATA_STRING = "barcode_data_string"
     }
     private lateinit var sessionActivityBinding: SessionActivityBinding
     private lateinit var viewModel: SessionViewModel
@@ -60,7 +63,7 @@ class SessionActivity : AppCompatActivity(), AppReceiver {
                     }
                     Toast.makeText(
                         this@SessionActivity,
-                        "No active session, click on start session to begin",
+                        result.throwable?.message ?: "Something went wrong, please try again.",
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -71,6 +74,33 @@ class SessionActivity : AppCompatActivity(), AppReceiver {
         })
 
         viewModel.setupUiIfSessionIsRunning()
+
+        sessionActivityBinding.apply {
+            startSessionButton.clickWithThrottle {
+                val intent = Intent(this@SessionActivity, SessionService::class.java)
+                startActivityForResult(intent, BARCODE_REQUEST_CODE)
+            }
+
+            endSessionButton.clickWithThrottle {
+
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if(resultCode == Activity.RESULT_OK && requestCode == BARCODE_REQUEST_CODE){
+            val barcodeData = data?.getStringExtra(BARCODE_DATA_STRING)
+            if(barcodeData.isNullOrEmpty().not()) {
+                viewModel.checkAndStartSession(barcodeString = barcodeData!!)
+            } else {
+                Toast.makeText(
+                    this@SessionActivity,
+                    "Something went wrong, please try again.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
     }
 
     override fun onReceiveResult(resultCode: Int, resultData: Bundle?) {
