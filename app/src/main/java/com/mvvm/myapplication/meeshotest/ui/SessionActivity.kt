@@ -32,6 +32,7 @@ class SessionActivity : AppCompatActivity(), AppReceiver {
         const val SESSION_TIME_ELAPSED_RESULT_CODE = 101
         const val BARCODE_START_SESSION_REQUEST_CODE = 102
         const val BARCODE_END_SESSION_REQUEST_CODE = 103
+        const val PERMISSION_REQUESTS = 104
     }
     private lateinit var sessionActivityBinding: SessionActivityBinding
     private lateinit var viewModel: SessionViewModel
@@ -45,14 +46,18 @@ class SessionActivity : AppCompatActivity(), AppReceiver {
         super.onCreate(savedInstanceState)
         sessionActivityBinding = SessionActivityBinding.inflate(layoutInflater)
         setContentView(sessionActivityBinding.root)
-
         viewModel = ViewModelProvider(this.viewModelStore, viewModelFactory)[SessionViewModel::class.java]
+        setupUI()
 
+        if(PermissionsManager.allPermissionsGranted(this).not()) {
+            PermissionsManager.getRuntimePermissions(this)
+        }
+    }
+
+    private fun setupUI() {
         setupSessionUiObserver()
         setupErrorAlertObserver()
-
         viewModel.setupUiIfSessionIsRunning()
-
         setupClickListeners()
     }
 
@@ -106,17 +111,25 @@ class SessionActivity : AppCompatActivity(), AppReceiver {
     private fun setupClickListeners() {
         sessionActivityBinding.apply {
             startSessionButton.clickWithThrottle {
-                BarcodeWrapper.startBarcodeScanner(
-                    requestCode = BARCODE_START_SESSION_REQUEST_CODE,
-                    activity = this@SessionActivity
-                )
+                if(PermissionsManager.allPermissionsGranted(this@SessionActivity)) {
+                    BarcodeWrapper.startBarcodeScanner(
+                        requestCode = BARCODE_START_SESSION_REQUEST_CODE,
+                        activity = this@SessionActivity
+                    )
+                } else {
+                    PermissionsManager.showPermissionDialog(this@SessionActivity)
+                }
             }
 
             endSessionButton.clickWithThrottle {
-                BarcodeWrapper.startBarcodeScanner(
-                    requestCode = BARCODE_END_SESSION_REQUEST_CODE,
-                    activity = this@SessionActivity
-                )
+                if(PermissionsManager.allPermissionsGranted(this@SessionActivity)) {
+                    BarcodeWrapper.startBarcodeScanner(
+                        requestCode = BARCODE_END_SESSION_REQUEST_CODE,
+                        activity = this@SessionActivity
+                    )
+                } else {
+                    PermissionsManager.showPermissionDialog(this@SessionActivity)
+                }
             }
         }
     }
@@ -169,7 +182,18 @@ class SessionActivity : AppCompatActivity(), AppReceiver {
 
     override fun onReceiveResult(resultCode: Int, resultData: Bundle?) {
         //Callback from service. Update textview with elapsed time
-        sessionActivityBinding.tvTimer.text = resultData?.getString(SESSION_TIME_ELAPSED)
+        sessionActivityBinding.tvTimer.text = "Time Elapsed: ${resultData?.getString(SESSION_TIME_ELAPSED)}"
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        if (PermissionsManager.allPermissionsGranted(this).not()) {
+            PermissionsManager.showPermissionDialog(this)
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
     override fun onDestroy() {

@@ -15,6 +15,20 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
 
+    <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/font_30"
+            android:layout_marginStart="@dimen/sixteen_dp"
+            android:layout_marginEnd="@dimen/sixteen_dp"
+            android:text="@string/welcome_text"
+            android:textColor="@color/white"
+            android:textAlignment="center"
+            android:gravity="center_horizontal"
+            app:layout_constraintStart_toStartOf="@+id/ivHeader"
+            app:layout_constraintTop_toTopOf="@+id/ivHeader"
+            app:layout_constraintEnd_toEndOf="@+id/ivHeader"
+            app:layout_constraintBottom_toBottomOf="@+id/ivHeader"/>
     <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
