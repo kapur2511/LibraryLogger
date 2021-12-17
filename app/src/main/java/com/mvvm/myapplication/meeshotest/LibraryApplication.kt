@@ -1,8 +1,9 @@
 package com.mvvm.myapplication.meeshotest
 
+import com.mvvm.myapplication.meeshotest.di.DaggerApplicationComponent
 import com.mvvm.myapplication.meeshotest.notification.NotificationUtils
 import dagger.android.AndroidInjector
-import dagger.android.DaggerApplication
+import dagger.android.support.DaggerApplication
 
 class LibraryApplication: DaggerApplication() {
 

@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName
 data class BarcodeData(
     @SerializedName("location_id")
     val locationId: String,
-    @SerializedName("location_detail")
+    @SerializedName("location_details")
     val locationDetail: String,
     @SerializedName("price_per_min")
     val pricePerMin: Float,

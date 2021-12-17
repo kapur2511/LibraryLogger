@@ -1,11 +1,14 @@
 package com.mvvm.myapplication.meeshotest.viewmodel
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
+import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
 import com.mvvm.myapplication.meeshotest.data.localmodels.BarcodeData
+import com.mvvm.myapplication.meeshotest.data.localmodels.EndSessionDisplayModel
 import com.mvvm.myapplication.meeshotest.data.repository.SessionRepository
 import com.mvvm.myapplication.meeshotest.utils.Error
 import com.mvvm.myapplication.meeshotest.utils.Loading
@@ -21,7 +24,10 @@ class SessionViewModel @Inject constructor(
 ): ViewModel() {
 
     private val _sessionUIObservable = MutableLiveData<ResultWrapper<BarcodeData>>()
-    val sessionUIObservable = _sessionUIObservable
+    val sessionUIObservable: LiveData<ResultWrapper<BarcodeData>> = _sessionUIObservable
+
+    private val _endSessionAlertObservable = MutableLiveData<EndSessionDisplayModel>()
+    val endSessionAlertObservable: LiveData<EndSessionDisplayModel> = _endSessionAlertObservable
 
     fun setupUiIfSessionIsRunning(){
         _sessionUIObservable.postValue(Loading(true))
@@ -44,14 +50,10 @@ class SessionViewModel @Inject constructor(
     fun checkAndStartSession(barcodeString: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val gson = Gson()
-                val type = object: TypeToken<BarcodeData>(){}.type
-                val barcodeData = gson.fromJson<BarcodeData>(barcodeString, type)
-                sessionRepository.addSession(
-                    barcodeData = barcodeData.copy(
-                        startTimestamp =  System.currentTimeMillis()
-                    )
+                val barcodeData = parseString(barcodeString).copy(
+                    startTimestamp =  System.currentTimeMillis()
                 )
+                sessionRepository.addSession(barcodeData)
                 _sessionUIObservable.postValue(Success(barcodeData))
             } catch (e: Exception) {
                 //Some parsing error
@@ -60,9 +62,41 @@ class SessionViewModel @Inject constructor(
         }
     }
 
-    fun endSession() {
+    fun endSession(barcodeString: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            sessionRepository.endSession()
+            try {
+                val barcodeData = parseString(barcodeString)
+                val endSessionDisplayModel = sessionRepository.endSession(barcodeData)
+                if(endSessionDisplayModel != null) {
+                    _endSessionAlertObservable.postValue(endSessionDisplayModel)
+                } else {
+                    _endSessionAlertObservable.postValue(
+                        EndSessionDisplayModel(
+                            amountToPay = 0f,
+                            timeSpent = 0,
+                            endTime = "",
+                            errorString = "Please scan the same barcode to end session."
+                        )
+                    )
+                }
+            } catch (e: Exception) {
+                _endSessionAlertObservable.postValue(
+                    EndSessionDisplayModel(
+                        amountToPay = 0f,
+                        timeSpent = 0,
+                        endTime = "",
+                        errorString = "Something went wrong, please try again."
+                    )
+                )
+            }
+
         }
+    }
+
+    private fun parseString(barcodeString: String): BarcodeData {
+        val gson = Gson()
+        val jsonElement = gson.fromJson(barcodeString, JsonElement::class.java).asString
+        val type = object : TypeToken<BarcodeData>() {}.type
+        return gson.fromJson(jsonElement, type)
     }
 }

@@ -20,10 +20,18 @@ class SessionService: Service() {
     }
 
     private var secondsElapsed = 0
+    private var timerRunning = false
+    private var receiver: ResultReceiver? = null
+    private val handler = Handler(Looper.getMainLooper())
 
     //Not a bound service
     override fun onBind(intent: Intent?): IBinder? {
         return null
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        timerRunning = true
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -32,24 +40,24 @@ class SessionService: Service() {
             return START_NOT_STICKY
         }
         val startTimeStamp = intent.getLongExtra(SESSION_START_TIMESTAMP, -1)
-        val receiver = intent.getParcelableExtra<ResultReceiver>(SESSION_RECEIVER)
-        startTimer(startTimeStamp, receiver)
+        receiver = intent.getParcelableExtra<ResultReceiver>(SESSION_RECEIVER)
+        //resetting the seconds elapsed before starting timer again.
+        secondsElapsed = 0
+        handler.removeCallbacksAndMessages(null)
+        startTimer(startTimeStamp)
 
         val notification = NotificationUtils.createNotification(context = this)
         startForeground(SESSION_FOREGROUND_SERVICE_ID, notification)
         return START_STICKY
     }
 
-    private fun startTimer(startTimeStamp: Long, receiver: ResultReceiver?) {
-        val handler = Handler(Looper.getMainLooper())
-
+    private fun startTimer(startTimeStamp: Long) {
         // Call the post() method, passing in a new Runnable.
         // The post() method processes code without a delay,
         // so the code in the Runnable will run almost immediately.
         // Call the post() method, passing in a new Runnable.
         // The post() method processes code without a delay,
         // so the code in the Runnable will run almost immediately.
-
         val timeElapsedSinceStart = System.currentTimeMillis() - startTimeStamp
         if(timeElapsedSinceStart>1000) {
             secondsElapsed += (timeElapsedSinceStart/1000).toInt()
@@ -57,31 +65,39 @@ class SessionService: Service() {
 
         handler.post(object : Runnable {
             override fun run() {
-                val hours: Int = secondsElapsed / 3600
-                val minutes: Int = secondsElapsed % 3600 / 60
-                val secs: Int = secondsElapsed % 60
+                if(timerRunning) {
+                    val hours: Int = secondsElapsed / 3600
+                    val minutes: Int = secondsElapsed % 3600 / 60
+                    val secs: Int = secondsElapsed % 60
 
-                // Format the seconds into hours, minutes,
-                // and seconds.
-                val time: String = java.lang.String
-                    .format(
-                        Locale.getDefault(),
-                        "%d:%02d:%02d", hours,
-                        minutes, secs
-                    )
+                    // Format the seconds into hours, minutes,
+                    // and seconds.
+                    val time: String = java.lang.String
+                        .format(
+                            Locale.getDefault(),
+                            "%d:%02d:%02d", hours,
+                            minutes, secs
+                        )
 
-                updateUI(timeElapsed = time, receiver = receiver)
+                    updateUI(timeElapsed = time)
 
-                secondsElapsed++
+                    secondsElapsed++
 
-                // Post the runnable again
-                // with a delay of 1 second.
-                handler.postDelayed(this, 1000)
+                    // Post the runnable again
+                    // with a delay of 1 second.
+                    handler.postDelayed(this, 1000)
+                }
             }
         })
     }
 
-    fun updateUI(timeElapsed: String, receiver: ResultReceiver?) {
+    override fun onDestroy() {
+        super.onDestroy()
+        timerRunning = false
+        handler.removeCallbacksAndMessages(null)
+    }
+
+    fun updateUI(timeElapsed: String) {
         //update notification
         val manager = ContextCompat.getSystemService(
             this,
